@@ -18,11 +18,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android NDK
-        run: sdkmanager --install "ndk;26.3.11579264"
+      - name: Configure Pre-installed Android SDK & NDK
+        run: |
+          SDK_DIR="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDKMANAGER="$SDK_DIR/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" --install "ndk;26.3.11579264" "platforms;android-34" "build-tools;34.0.0"
+          echo "ANDROID_HOME=$SDK_DIR" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$SDK_DIR" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=$SDK_DIR/ndk/26.3.11579264" >> $GITHUB_ENV
 
       - name: Setup Rust & Android Target
         uses: dtolnay/rust-toolchain@stable
@@ -32,13 +36,15 @@ jobs:
       - name: Install Dioxus CLI
         run: cargo install dioxus-cli --version 0.6.3
 
-      - name: Bundle Android APK
-        env:
-          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/26.3.11579264
-        run: dx bundle --platform android --release
+      - name: Prepare & Bundle Android APK
+        run: |
+          if [ -f "meezan-rust/Cargo.toml" ]; then cd meezan-rust; fi
+          sed -i 's/default = \["web"\]/default = \[\]/g' Cargo.toml
+          dx bundle --platform android --features mobile --release
 
       - name: Upload Meezan APK
         uses: actions/upload-artifact@v4
         with:
           name: Meezan-Android-APK
-          path: target/dx/meezan/release/android/**/*.apk
+          path: "**/target/dx/**/*.apk"
+          
