@@ -127,7 +127,8 @@ pub fn FinanceView() -> Element {
                     class: "btn-primary tap-spring",
                     style: "width: 100%;",
                     onclick: move |_| {
-                        if let Ok(val) = amount.read().parse::<f64>() {
+                        let parsed = amount.read().parse::<f64>();
+                        if let Ok(val) = parsed {
                             state.add_transaction(
                                 title.read().clone(),
                                 category.read().clone(),
