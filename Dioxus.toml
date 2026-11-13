@@ -1,0 +1,12 @@
+[application]
+name = "meezan"
+default_platform = "web"
+out_dir = "dist"
+asset_dir = "assets"
+
+[web.app]
+title = "مِيزان — منظم الحياة الشخصي"
+
+[bundle]
+identifier = "com.meezan.lifeorganizer"
+publisher = "Meezan App"
